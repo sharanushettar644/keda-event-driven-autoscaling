@@ -129,7 +129,7 @@ RabbitMQ's management UI is available at `kubectl -n keda-demo port-forward svc/
 **Sharanabasava Shettar**: DevOps Engineer | CKA, CKAD
 
 I design Kubernetes platforms and autoscaling for event-driven workloads on AWS, Azure and GCP.
-[LinkedIn](https://www.linkedin.com/in/sharanabasava-shettar)
+[LinkedIn](https://www.linkedin.com/in/sharan-shettar-0b699821a)
 
 ## License
 
