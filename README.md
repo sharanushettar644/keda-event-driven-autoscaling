@@ -25,7 +25,7 @@ Queue consumers (order processing, notifications, video encoding, report generat
 | Queue state | Consumers |
 |---|---|
 | Empty | **0 pods**, no compute cost |
-| Messages arrive | first pod in about 5 seconds |
+| Messages arrive | first pod within seconds |
 | Backlog grows | about 1 pod per 5 waiting messages, up to 20 |
 | Drained for 30 s | back to **0** |
 
@@ -50,20 +50,22 @@ flowchart LR
 
 ## Scaling in action
 
-Each CI run executes [`scripts/e2e-test.sh`](scripts/e2e-test.sh) on a fresh kind cluster and publishes the timeline to the run's summary (**Actions → latest run → Summary**). It has this shape:
+Every CI run executes [`scripts/e2e-test.sh`](scripts/e2e-test.sh) on a fresh kind cluster and publishes the timeline to the run's summary (**Actions → latest run → Summary**). This is real output from CI: 300 jobs of 1 second each.
 
 ```
 elapsed  queue      consumers  event
 0s       0          0          start: idle, scaled to zero
-12s      300        0          producer finished publishing
-17s      300        1
-27s      268        4
-37s      201        16
-47s      64         20
-57s      0          20         queue drained
-...
-112s     0          0          scaled back to zero
+11s      297        1          producer finished publishing
+25s      279        2
+37s      250        4
+56s      155        8
+68s      42         16
+75s      0          16         queue drained (peak consumers: 16)
+96s      0          8
+107s     0          0          scaled back to zero
 ```
+
+From zero, KEDA doubled the consumers as the backlog grew. 300 seconds of work finished in about 75 seconds, and the deployment was back to **zero pods** half a minute after the queue emptied.
 
 ## What's in the repo
 
