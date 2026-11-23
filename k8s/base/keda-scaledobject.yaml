@@ -1,0 +1,47 @@
+# KEDA reads the queue depth straight from RabbitMQ and drives an HPA for the
+# consumer Deployment, including the 0 <-> 1 step a normal HPA cannot do.
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: rabbitmq-auth
+spec:
+  secretTargetRef:
+    - parameter: host
+      name: rabbitmq-credentials
+      key: amqp-url
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: consumer
+spec:
+  scaleTargetRef:
+    name: consumer
+  minReplicaCount: 0        # scale to zero when idle: no messages, no pods, no cost
+  maxReplicaCount: 20       # protect the broker and the cluster
+  pollingInterval: 5        # seconds between queue checks
+  cooldownPeriod: 30        # seconds of empty queue before scaling back to zero
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+            - type: Percent
+              value: 100
+              periodSeconds: 10
+        scaleDown:
+          stabilizationWindowSeconds: 30
+          policies:
+            - type: Percent
+              value: 50
+              periodSeconds: 15
+  triggers:
+    - type: rabbitmq
+      metadata:
+        protocol: amqp
+        queueName: jobs
+        mode: QueueLength
+        value: "5"           # target: about 5 waiting messages per consumer pod
+      authenticationRef:
+        name: rabbitmq-auth

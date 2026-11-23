@@ -1,0 +1,49 @@
+# Generates a burst of work. Re-run with:
+#   kubectl -n keda-demo delete job producer --ignore-not-found
+#   kubectl apply -k k8s/load-test
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: producer
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: producer
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: producer
+          image: keda-worker
+          command: ["python", "-m", "worker.producer"]
+          env:
+            - name: QUEUE_NAME
+              value: jobs
+            - name: MESSAGE_COUNT
+              value: "300"
+            - name: WORK_MS
+              value: "1000"
+            - name: AMQP_URL
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: amqp-url
+          resources:
+            requests:
+              cpu: 20m
+              memory: 48Mi
+            limits:
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]

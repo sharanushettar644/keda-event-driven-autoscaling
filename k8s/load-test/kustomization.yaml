@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: keda-demo
+resources:
+  - producer-job.yaml
+images:
+  - name: keda-worker
+    newName: ghcr.io/sharanushettar644/keda-event-driven-autoscaling
+    newTag: latest

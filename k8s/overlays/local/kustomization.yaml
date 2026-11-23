@@ -1,0 +1,9 @@
+# Uses the image built locally and loaded into kind (see scripts/kind-up.sh).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../../base
+images:
+  - name: ghcr.io/sharanushettar644/keda-event-driven-autoscaling
+    newName: keda-worker
+    newTag: local

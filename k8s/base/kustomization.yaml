@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: keda-demo
+
+resources:
+  - namespace.yaml
+  - rabbitmq.yaml
+  - consumer.yaml
+  - keda-scaledobject.yaml
+
+# Demo-only credentials, generated as a Secret. In a real environment these come
+# from a secret manager (External Secrets, Sealed Secrets, Vault...), never Git.
+secretGenerator:
+  - name: rabbitmq-credentials
+    literals:
+      - username=demo
+      - password=demo-password-change-me
+      - amqp-url=amqp://demo:demo-password-change-me@rabbitmq.keda-demo.svc.cluster.local:5672/%2F
+generatorOptions:
+  disableNameSuffixHash: true
+
+images:
+  - name: keda-worker
+    newName: ghcr.io/sharanushettar644/keda-event-driven-autoscaling
+    newTag: latest

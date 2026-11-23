@@ -1,0 +1,2 @@
+# Keep shell scripts and YAML with LF endings even when edited on Windows.
+* text=auto eol=lf
